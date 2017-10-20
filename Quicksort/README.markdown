@@ -7,16 +7,15 @@ Quicksort is one of the most famous algorithms in history. It was invented way b
 Here's an implementation in Swift that should be easy to understand:
 
 ```swift
-func quicksort<T: Comparable>(a: [T]) -> [T] {
-  if a.count <= 1 {
-    return a
-  } else {
-    let pivot = a[a.count/2]
-    let less = a.filter { $0 < pivot }
-    let equal = a.filter { $0 == pivot }
-    let greater = a.filter { $0 > pivot }
-    return quicksort(less) + equal + quicksort(greater)
-  }
+func quicksort<T: Comparable>(_ a: [T]) -> [T] {
+  guard a.count > 1 else { return a }
+
+  let pivot = a[a.count/2]
+  let less = a.filter { $0 < pivot }
+  let equal = a.filter { $0 == pivot }
+  let greater = a.filter { $0 > pivot }
+
+  return quicksort(less) + equal + quicksort(greater)
 }
 ```
 
@@ -31,7 +30,7 @@ Here's how it works. When given an array, `quicksort()` splits it up into three 
 
 All the elements less than the pivot go into a new array called `less`. All the elements equal to the pivot go into the `equal` array. And you guessed it, all elements greater than the pivot go into the third array, `greater`. This is why the generic type `T` must be `Comparable`, so we can compare the elements with `<`, `==`, and `>`.
 
-Once we have these three arrays, `quicksort()` recursively sorts the `less` array and the `right` array, then glues those sorted subarrays back together to get the final result. 
+Once we have these three arrays, `quicksort()` recursively sorts the `less` array and the `greater` array, then glues those sorted subarrays back together with the `equal` array to get the final result.
 
 ## An example
 
@@ -45,7 +44,7 @@ First, we pick the pivot element. That is `8` because it's in the middle of the 
 	equal:   [ 8, 8 ]
 	greater: [ 10, 9, 14, 27, 26 ]
 
-This is a good split because `less` and `equal` roughly contain the same number of elements. So we've picked a good pivot that chopped the array right down the middle.
+This is a good split because `less` and `greater` roughly contain the same number of elements. So we've picked a good pivot that chopped the array right down the middle.
 
 Note that the `less` and `greater` arrays aren't sorted yet, so we call `quicksort()` again to sort those two subarrays. That does the exact same thing: pick a pivot and split the subarray into three even smaller parts.
 
@@ -74,7 +73,7 @@ The `less` array is empty because there was no value smaller than `-1`; the othe
 That `greater` array was:
 
 	[ 3, 2, 5 ]
-	
+
 This works just the same way as before: we pick the middle element `2` as the pivot and fill up the subarrays:
 
 	less:    [ ]
@@ -123,7 +122,7 @@ There is no guarantee that partitioning keeps the elements in the same relative 
 
 	[ 3, 0, 5, 2, -1, 1, 8, 8, 14, 26, 10, 27, 9 ]
 
-The only guarantee is that to the left of the pivot are all the smaller elements and to the right are all the larger elements. Because partitioning can change the original order of equal elements, quicksort does not produce a "stable" sort (unlike [merge sort](../Merge Sort/), for example). Most of the time that's not a big deal.
+The only guarantee is that to the left of the pivot are all the smaller elements and to the right are all the larger elements. Because partitioning can change the original order of equal elements, quicksort does not produce a "stable" sort (unlike [merge sort](../Merge%20Sort/), for example). Most of the time that's not a big deal.
 
 ## Lomuto's partitioning scheme
 
@@ -132,9 +131,9 @@ In the first example of quicksort I showed you, partitioning was done by calling
 Here's an implementation of Lomuto's partitioning scheme in Swift:
 
 ```swift
-func partitionLomuto<T: Comparable>(inout a: [T], low: Int, high: Int) -> Int {
+func partitionLomuto<T: Comparable>(_ a: inout [T], low: Int, high: Int) -> Int {
   let pivot = a[high]
-  
+
   var i = low
   for j in low..<high {
     if a[j] <= pivot {
@@ -142,7 +141,7 @@ func partitionLomuto<T: Comparable>(inout a: [T], low: Int, high: Int) -> Int {
       i += 1
     }
   }
-  
+
   (a[i], a[high]) = (a[high], a[i])
   return i
 }
@@ -160,16 +159,16 @@ Note that `list` needs to be a `var` because `partitionLomuto()` directly change
 
 The `low` and `high` parameters are necessary because when this is used inside quicksort, you don't always want to (re)partition the entire array, only a limited range that becomes smaller and smaller.
 
-Previously we used the middle array element as the pivot but it's important to realize that the Lomuto algorithm always uses the *last* element, `a[high]`. Because we've been pivoting around `8` all this time, I swapped the positions of `8` and `26` in the example so that `8` is at the end of the array and is used as the pivot value here too.
+Previously we used the middle array element as the pivot but it's important to realize that the Lomuto algorithm always uses the *last* element, `a[high]`, for the pivot. Because we've been pivoting around `8` all this time, I swapped the positions of `8` and `26` in the example so that `8` is at the end of the array and is used as the pivot value here too.
 
 After partitioning, the array looks like this:
 
 	[ 0, 3, 2, 1, 5, 8, -1, 8, 9, 10, 14, 26, 27 ]
 	                        *
 
-The variable `p` contains the return value of the call to `partitionLomuto()` and is 7. This is the index of the pivot element in the new array (marked with a star). 
+The variable `p` contains the return value of the call to `partitionLomuto()` and is 7. This is the index of the pivot element in the new array (marked with a star).
 
-The left partition goes from 0 to `p-1` and is `[ 0, 3, 2, 1, 5, 8, -1 ]`. The right partition goes from `p+1` to the end, and is `[ 9, 10, 14, 26, 27 ]` (the fact that this is already sorted is a coincidence). 
+The left partition goes from 0 to `p-1` and is `[ 0, 3, 2, 1, 5, 8, -1 ]`. The right partition goes from `p+1` to the end, and is `[ 9, 10, 14, 26, 27 ]` (the fact that the right partition is already sorted is a coincidence).
 
 You may notice something interesting... The value `8` occurs more than once in the array. One of those `8`s did not end up neatly in the middle but somewhere in the left partition. That's a small downside of the Lomuto algorithm as it makes quicksort slower if there are a lot of duplicate elements.
 
@@ -251,7 +250,7 @@ And we return `i`, the index of the pivot element.
 Let's use this partitioning scheme to build quicksort. Here's the code:
 
 ```swift
-func quicksortLomuto<T: Comparable>(inout a: [T], low: Int, high: Int) {
+func quicksortLomuto<T: Comparable>(_ a: inout [T], low: Int, high: Int) {
   if low < high {
     let p = partitionLomuto(&a, low: low, high: high)
     quicksortLomuto(&a, low: low, high: p - 1)
@@ -278,15 +277,15 @@ This partitioning scheme is by Hoare, the inventor of quicksort.
 Here is the code:
 
 ```Swift
-func partitionHoare<T: Comparable>(inout a: [T], low: Int, high: Int) -> Int {
+func partitionHoare<T: Comparable>(_ a: inout [T], low: Int, high: Int) -> Int {
   let pivot = a[low]
   var i = low - 1
   var j = high + 1
-  
+
   while true {
     repeat { j -= 1 } while a[j] > pivot
     repeat { i += 1 } while a[i] < pivot
-    
+
     if i < j {
       swap(&a[i], &a[j])
     } else {
@@ -310,16 +309,16 @@ The result is:
 
 	[ -1, 0, 3, 8, 2, 5, 1, 27, 10, 14, 9, 8, 26 ]
 
-Note that this time the pivot isn't in the middle at all. Unlike with Lomuto's scheme, the return value is not necessarily the index of the pivot element in the new array. 
+Note that this time the pivot isn't in the middle at all. Unlike with Lomuto's scheme, the return value is not necessarily the index of the pivot element in the new array.
 
-Instead, the array is partitioned into the regions `[low...p]` and `[p+1...high]`. Here, the return value `p` is 6, so the two partitions are `[ -1, 0, 3, 8, 2, 5, 1 ]` and `[ 27, 10, 14, 9, 8, 26 ]`. 
+Instead, the array is partitioned into the regions `[low...p]` and `[p+1...high]`. Here, the return value `p` is 6, so the two partitions are `[ -1, 0, 3, 8, 2, 5, 1 ]` and `[ 27, 10, 14, 9, 8, 26 ]`.
 
 The pivot is placed somewhere inside one of the two partitions, but the algorithm doesn't tell you which one or where. If the pivot value occurs more than once, then some instances may appear in the left partition and others may appear in the right partition.
 
 Because of these differences, the implementation of Hoare's quicksort is slightly different:
 
 ```swift
-func quicksortHoare<T: Comparable>(inout a: [T], low: Int, high: Int) {
+func quicksortHoare<T: Comparable>(_ a: inout [T], low: Int, high: Int) {
   if low < high {
     let p = partitionHoare(&a, low: low, high: high)
     quicksortHoare(&a, low: low, high: p)
@@ -358,7 +357,7 @@ And again:
 
 And so on...
 
-That's no good, because this pretty much reduces quicksort to the much slower insertion sort. For quicksort to be efficient, it needs to split the array into roughly two halves. 
+That's no good, because this pretty much reduces quicksort to the much slower insertion sort. For quicksort to be efficient, it needs to split the array into roughly two halves.
 
 The optimal pivot for this example would have been `4`, so we'd get:
 
@@ -372,7 +371,7 @@ You might think this means we should always choose the middle element rather tha
 
 Now the middle element is `1` and that gives the same lousy results as in the previous example.
 
-Ideally, the pivot is the *median* element of the array that you're partitioning. Of course, you won't know what the median is until after you've sorted the array, so this is a bit of a chicken-and-egg problem. However, there are some tricks to choose good, if not ideal, pivots.
+Ideally, the pivot is the *median* element of the array that you're partitioning, i.e. the element that sits in the middle of the sorted array. Of course, you won't know what the median is until after you've sorted the array, so this is a bit of a chicken-and-egg problem. However, there are some tricks to choose good, if not ideal, pivots.
 
 One trick is "median-of-three", where you find the median of the first, middle, and last element in this subarray. In theory that often gives a good approximation of the true median.
 
@@ -381,7 +380,7 @@ Another common solution is to choose the pivot randomly. Sometimes this may resu
 Here is how you can do quicksort with a randomly chosen pivot:
 
 ```swift
-func quicksortRandom<T: Comparable>(inout a: [T], low: Int, high: Int) {
+func quicksortRandom<T: Comparable>(_ a: inout [T], low: Int, high: Int) {
   if low < high {
     let pivotIndex = random(min: low, max: high)         // 1
 
@@ -413,7 +412,7 @@ But as you've seen with the Lomuto partitioning scheme, if the pivot occurs more
 The code for this scheme is:
 
 ```swift
-func partitionDutchFlag<T: Comparable>(inout a: [T], low: Int, high: Int, pivotIndex: Int) -> (Int, Int) {
+func partitionDutchFlag<T: Comparable>(_ a: inout [T], low: Int, high: Int, pivotIndex: Int) -> (Int, Int) {
   let pivot = a[pivotIndex]
 
   var smaller = low
@@ -462,7 +461,7 @@ Notice how the two `8`s are in the middle now. The return value from `partitionD
 Here is how you would use it in quicksort:
 
 ```swift
-func quicksortDutchFlag<T: Comparable>(inout a: [T], low: Int, high: Int) {
+func quicksortDutchFlag<T: Comparable>(_ a: inout [T], low: Int, high: Int) {
   if low < high {
     let pivotIndex = random(min: low, max: high)
     let (p, q) = partitionDutchFlag(&a, low: low, high: high, pivotIndex: pivotIndex)
@@ -478,6 +477,6 @@ Using Dutch flag partitioning makes for a more efficient quicksort if the array 
 
 ## See also
 
-See also [Wikipedia](https://en.wikipedia.org/wiki/Quicksort).
+[Quicksort on Wikipedia](https://en.wikipedia.org/wiki/Quicksort)
 
-*Written by Matthijs Hollemans*
+*Written for Swift Algorithm Club by Matthijs Hollemans*

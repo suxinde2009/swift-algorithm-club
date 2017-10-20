@@ -1,15 +1,91 @@
 # Two-Sum Problem
 
-You're given an array `a` with numbers. Write an algorithm that checks if there are any two entries in the array that add up to a given number `k`. In other words, is there any `a[i] + a[j] == k`?
+Given an array of integers and an integer target, return the indices of two numbers that add up to the target.
 
-There are a variety of solutions to this problem (some better than others) but I quite like the following. 
+There are a variety of solutions to this problem (some better than others). The following solutions both run in **O(n)** time.
 
-**Note**: This particular algorithm requires that the array is sorted, so if the array isn't sorted yet (usually it won't be), you need to sort it first. The time complexity of the algorithm itself is **O(n)** but if you have to sort first, the total time complexity becomes **O(n log n)**. Slightly worse but still quite acceptable.
+# Solution 1
+
+This solution looks at one number at a time, storing each number in the dictionary. It uses the number as the key and the number's index in the array as the value.
+
+For each number n, we know the complementing number to sum up to the target is `target - n`. By looking up the complement in the dictionary, we'd know whether we've seen the complement before and what its index is.
+
+```swift
+func twoSum(_ nums: [Int], target: Int) -> (Int, Int)? {
+    var dict = [Int: Int]()
+    
+    // For every number n,
+    for (currentIndex, n) in nums.enumerated() {
+        // Find the complement to n that would sum up to the target.
+        let complement = target - n
+        
+        // Check if the complement is in the dictionary.
+        if let complementIndex = dict[complement] {
+            return (complementIndex, currentIndex)
+        }
+        
+        // Store n and its index into the dictionary.
+        dict[n] = currentIndex
+    }
+    
+    return nil
+}
+```
+
+The `twoSum` function takes two parameters: the `numbers` array and the target sum. It returns the two indicies of the pair of elements that sums up to the target, or `nil` if they can't be found.
+
+Let's run through the algorithm to see how it works. Given the array:
+
+```swift
+[3, 2, 9, 8]
+```
+
+Let's find out if there exist two entries whose sum is 10.
+
+Initially, our dictionary is empty. We begin looping through each element:
+
+- **currentIndex = 0** | n = nums[0] = 3 | complement = 10 - 3 = 7
+
+Is the complement `7` in the dictionary? No, so we add `3` and its index `0` to the dictionary.
+
+```swift
+[3: 0]
+```
+
+- **currentIndex = 1** | n = 2 | complement = 10 - 2 = 8
+
+Is the complement `8` in the dictionary? No, so we add `2` and its index `1` to the dictionary.
+
+```swift
+[3: 0, 2: 1]
+```
+
+- **currentIndex = 2** | n = 9 | complement = 10 - 9 = 1
+
+Is the complement `1` in the dictionary? No, so we add `9` and its index `2` to the dictionary.:
+
+```swift
+[3: 0, 2: 1, 9: 2]
+```
+
+- **currentIndex = 3** | n = 8 | complement = 10 - 8 = 2
+
+Is the complement `2` in the dictionary? Yes! That means that we have found a pair of entries that sum to the target!
+
+Therefore, the `complementIndex = dict[2] = 1` and the `currentIndex = 3`. The tuple we return is `(1, 3)`.
+
+If the given array has multiple solutions, only the first solution is returned.
+
+The running time of this algorithm is **O(n)** because it may look at every element in the array. It also requires **O(n)** additional storage space for the dictionary.
+
+# Solution 2
+
+**Note**: This particular algorithm requires that the array is sorted, so if the array isn't sorted yet (usually it won't be), you need to sort it first. The time complexity of the algorithm itself is **O(n)** and, unlike the previous solution, it does not require extra storage. Of course, if you have to sort first, the total time complexity becomes **O(n log n)**. Slightly worse but still quite acceptable.
 
 Here is the code in Swift:
 
 ```swift
-func twoSumProblem(a: [Int], k: Int) -> ((Int, Int))? {
+func twoSumProblem(_ a: [Int], k: Int) -> ((Int, Int))? {
   var i = 0
   var j = a.count - 1
 
@@ -18,16 +94,16 @@ func twoSumProblem(a: [Int], k: Int) -> ((Int, Int))? {
     if sum == k {
       return (i, j)
     } else if sum < k {
-      ++i
+      i += 1
     } else {
-      --j
+      j -= 1
     }
   }
   return nil
 }
 ```
 
-The `twoSumProblem()` function takes as parameters the array `a` with the numbers, which it assumes is sorted, and `k`, the sum we're looking for. If there are two numbers that add up to `k`, the function returns a tuple containing their array indices. If not, it returns `nil`.
+As in the first solution, the `twoSumProblem()` function takes as parameters the array `a` with the numbers and `k`, the sum we're looking for. If there are two numbers that add up to `k`, the function returns a tuple containing their array indices. If not, it returns `nil`. The main difference is that `a` is assumed to be sorted.
 
 To test it, copy the code into a playground and add the following:
 
@@ -88,4 +164,8 @@ It's possible, of course, that there are no values for `a[i] + a[j]` that sum to
 
 I'm quite enamored by this little algorithm. It shows that with some basic preprocessing on the input data -- sorting it from low to high -- you can turn a tricky problem into a very simple and beautiful algorithm.
 
-*Written by Matthijs Hollemans*
+## Additional Reading
+
+* [3Sum / 4Sum](https://github.com/raywenderlich/swift-algorithm-club/tree/master/3Sum%20and%204Sum)
+
+*Written for Swift Algorithm Club by Matthijs Hollemans and Daniel Speiser*

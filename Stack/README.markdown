@@ -38,11 +38,11 @@ stack.pop()
 
 This returns `3`, and so on. If the stack is empty, popping returns `nil` or in some implementations it gives an error message ("stack underflow").
 
-A stack is easy to create in Swift. It's just a wrapper around an array that just lets you push, pop, and peek:
+A stack is easy to create in Swift. It's just a wrapper around an array that just lets you push, pop, and look at the top element of the stack:
 
 ```swift
 public struct Stack<T> {
-  private var array = [T]()
+  fileprivate var array = [T]()
 
   public var isEmpty: Bool {
     return array.isEmpty
@@ -52,19 +52,15 @@ public struct Stack<T> {
     return array.count
   }
 
-  public mutating func push(element: T) {
+  public mutating func push(_ element: T) {
     array.append(element)
   }
 
   public mutating func pop() -> T? {
-    if isEmpty {
-      return nil
-    } else {
-      return array.removeLast()
-    }
+    return array.popLast()
   }
 
-  public func peek() -> T? {
+  public var top: T? {
     return array.last
   }
 }
@@ -72,6 +68,6 @@ public struct Stack<T> {
 
 Notice that a push puts the new element at the end of the array, not the beginning. Inserting at the beginning of an array is expensive, an **O(n)** operation, because it requires all existing array elements to be shifted in memory. Adding at the end is **O(1)**; it always takes the same amount of time, regardless of the size of the array.
 
-Fun fact about stacks: each time you call a function or a method, the return address is placed on a stack by the CPU. When the function ends, the CPU uses that return address to jump back to the caller. That's why if you call too many functions -- for example in a recursive function that never ends -- you get a so-called "stack overflow" as the CPU stack is out of space.
+Fun fact about stacks: Each time you call a function or a method, the CPU places the return address on a stack. When the function ends, the CPU uses that return address to jump back to the caller. That's why if you call too many functions -- for example in a recursive function that never ends -- you get a so-called "stack overflow" as the CPU stack has run out of space.
 
-*Written by Matthijs Hollemans*
+*Written for Swift Algorithm Club by Matthijs Hollemans*
